@@ -1,0 +1,12 @@
+android_app {
+    name: "GmsCompatConfig",
+    platform_apis: true,
+    certificate: "platform",
+    privileged: true,
+    srcs: [],
+    java_resources: ["gmscompat_config"],
+    manifest: "AndroidManifest.xml",
+    optimize: {
+        enabled: false,
+    },
+}
