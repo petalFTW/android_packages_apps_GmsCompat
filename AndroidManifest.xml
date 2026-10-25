@@ -13,6 +13,11 @@
     <uses-permission android:name="app.grapheneos.logviewer.SHOW_ERROR_REPORT" />
     <!-- needed for config fragments for updating permissions for Android Auto, etc. -->
     <uses-permission android:name="android.permission.UPDATE_AND_INVALIDATE_PERMISSION_STATE" />
+    <!-- petalOS: side-load the bundled AA stubs -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
+    <uses-permission android:name="android.permission.INSTALL_PACKAGES" />
+    <uses-permission android:name="android.permission.DELETE_PACKAGES" />
 
     <permission
         android:name="app.grapheneos.gmscompat.SHOW_UI"
@@ -95,6 +100,11 @@
         <activity
             android:name=".location.StubResolutionActivity"
             android:exported="true" />
+
+        <!-- petalOS: gets the install/uninstall result back so we can toast it -->
+        <receiver
+            android:name=".configui.aauto.StubResultReceiver"
+            android:exported="false" />
 
     </application>
 

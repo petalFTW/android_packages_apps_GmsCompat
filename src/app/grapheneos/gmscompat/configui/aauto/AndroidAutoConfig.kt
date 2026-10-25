@@ -9,6 +9,7 @@ import android.content.pm.ServiceInfo
 import android.ext.PackageId
 import android.provider.Settings
 import android.service.notification.NotificationListenerService
+import androidx.appcompat.app.AlertDialog
 import androidx.preference.Preference
 import androidx.preference.PreferenceGroup
 import androidx.preference.PreferenceScreen
@@ -18,8 +19,23 @@ import app.grapheneos.gmscompat.configui.BaseGosConfigFragment
 import app.grapheneos.gmscompat.configui.IssueCheck
 import app.grapheneos.gmscompat.configui.addPref
 import app.grapheneos.gmscompat.configui.addCategory
+import app.grapheneos.gmscompat.getAppInfoOrNull
 
 private const val CONFIG_PKG_NAME = PackageId.ANDROID_AUTO_NAME
+
+// the stubs we ship in assets/aa4mg and can drop in on demand
+private data class BundledStub(
+    val pkg: String,
+    val titleRes: Int,
+    val asset: String,
+)
+
+private val BUNDLED_STUBS = listOf(
+    BundledStub(PackageId.ANDROID_AUTO_NAME, R.string.android_auto, "AndroidAutoStubPrebuilt.apk"),
+    BundledStub("com.google.android.apps.maps", R.string.google_maps_app, "Maps.apk"),
+    BundledStub("com.google.android.tts", R.string.speech_services_app, "GoogleTTS.apk"),
+    BundledStub(PackageId.G_SEARCH_APP_NAME, R.string.google_search_app, "Velvet.apk"),
+)
 
 val aautoVoiceIssueChecks: List<IssueCheck> = listOf(
     IssueCheck.PermissionOnly(
@@ -56,6 +72,7 @@ class AndroidAutoConfigFragment : BaseGosConfigFragment(
     lateinit var aautoSettingsPref: Preference
     lateinit var potentialIssues: PreferenceGroup
     lateinit var aautoVoiceCommandIssues: Preference
+    private val stubPrefs = mutableMapOf<String, Preference>()
 
     override fun configurePreferenceScreen(screen: PreferenceScreen) {
         aautoSettingsPref = screen.addPref(getText(R.string.aauto_settings)).apply {
@@ -108,9 +125,64 @@ class AndroidAutoConfigFragment : BaseGosConfigFragment(
             addAppDependencyPref("com.google.android.tts", R.string.speech_services_app)
             addAppDependencyPref(PackageId.G_SEARCH_APP_NAME, R.string.google_search_app)
         }
+
+        // petalOS bundled stubs, one tap to install or rip back out
+        screen.addCategory(R.string.bundled_stubs_category).apply {
+            BUNDLED_STUBS.forEach { addStubPref(this, it) }
+        }
+    }
+
+    private fun addStubPref(group: PreferenceGroup, stub: BundledStub) {
+        val pref = Preference(group.context)
+        pref.title = getString(stub.titleRes)
+        pref.key = "stub:" + stub.pkg
+        stubPrefs[stub.pkg] = pref
+        pref.onPreferenceClickListener = Preference.OnPreferenceClickListener {
+            val app = pkgManager.getAppInfoOrNull(stub.pkg)
+            when {
+                app == null -> StubInstaller.install(
+                    requireContext(), stub.asset, stub.pkg, pref.title.toString()
+                )
+                isOurStub(stub.pkg) -> AlertDialog.Builder(requireContext())
+                    .setTitle(pref.title)
+                    .setMessage(R.string.stub_uninstall_confirm)
+                    .setPositiveButton(R.string.stub_uninstall_action) { _, _ ->
+                        StubInstaller.uninstall(
+                            requireContext(), stub.pkg, pref.title.toString()
+                        )
+                    }
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show()
+                // someone else's build (play store etc), leave it alone
+                else -> startActivity(createAppInfoIntent(stub.pkg))
+            }
+            true
+        }
+        group.addPreference(pref)
+    }
+
+    // did we install this one, or is it the real deal?
+    private fun isOurStub(pkg: String): Boolean = try {
+        pkgManager.getInstallSourceInfo(pkg).installingPackageName == requireContext().packageName
+    } catch (e: Exception) {
+        false
+    }
+
+    private fun refreshStubPrefs() {
+        stubPrefs.forEach { (pkg, pref) ->
+            val app = pkgManager.getAppInfoOrNull(pkg)
+            pref.summary = when {
+                app == null -> getText(R.string.stub_not_installed)
+                !app.enabled -> getText(R.string.stub_disabled)
+                isOurStub(pkg) -> getText(R.string.stub_installed)
+                else -> getText(R.string.stub_installed_real)
+            }
+        }
     }
 
     override fun updateNonPkgStateUi(applicationInfo: ApplicationInfo) {
+        refreshStubPrefs()
+
         aautoSettingsPref.apply {
             isEnabled = applicationInfo.enabled
             if (applicationInfo.enabled) {

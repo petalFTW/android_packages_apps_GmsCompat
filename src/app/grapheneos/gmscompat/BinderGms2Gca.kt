@@ -152,10 +152,6 @@ object BinderGms2Gca : IGms2Gca.Stub() {
         updateConfig(GmsCompatConfigParser.exec(App.ctx()))
     }
 
-    fun updateWalletConfig() {
-        updateConfig(GmsCompatConfigParser.exec(App.ctx()), invalidateCaches = false)
-    }
-
     private fun updateConfig(config: GmsCompatConfig, invalidateCaches: Boolean = true) {
         this.config = config
 

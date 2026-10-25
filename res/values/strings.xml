@@ -1,9 +1,5 @@
 <resources>
     <string name="app_name">GmsCompat</string>
-    <string name="wallet_attestation_serial_title">Google Wallet compatibility (experimental)</string>
-    <string name="wallet_attestation_serial_summary">Grants Play services privileged phone-state access, including hardware and subscriber identifiers across its processes, and enables the Wallet serial fix. Turning this off revokes that permission and disables the fix. Play services restarts when the permission changes. Off by default; Google still decides payment eligibility.</string>
-    <string name="wallet_attestation_serial_unsupported">This Play services version has not been validated for the serial compatibility experiment.</string>
-    <string name="wallet_attestation_permission_failed">Could not change Wallet compatibility. Check the GmsCompat logs for the permission error.</string>
     <string name="activity_name">Sandboxed Google Play</string>
     <string name="reroute_location_requests_to_os_apis">Reroute location requests to the OS</string>
     <string name="open_app_info">Open app info</string>
@@ -190,6 +186,16 @@ The network permission will also be allowed, it’s needed for communication wit
     <string name="aauto_issue_gsa_no_microphone_perm">Google app needs the Microphone permission</string>
 
     <string name="optional_deps_category">Optional dependencies</string>
+
+    <string name="bundled_stubs_category">Bundled stubs</string>
+    <string name="stub_installed">Installed, tap to uninstall</string>
+    <string name="stub_installed_real">Installed (not the bundled stub), tap to open app info</string>
+    <string name="stub_not_installed">Not installed, tap to install</string>
+    <string name="stub_disabled">Disabled, tap to uninstall</string>
+    <string name="stub_uninstall_confirm">Remove this bundled stub?</string>
+    <string name="stub_uninstall_action">Uninstall</string>
+    <string name="stub_done">%1$s done</string>
+    <string name="stub_failed">%1$s failed: %2$s</string>
 
     <string name="app_dep_missing_summary">Not installed, tap to open Play Store</string>
     <string name="app_dep_missing_summary_no_play_store">Not installed</string>

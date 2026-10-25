@@ -20,7 +20,6 @@ import com.android.settingslib.widget.SettingsBasePreferenceFragment
 import androidx.preference.PreferenceGroup
 import androidx.preference.SwitchPreferenceCompat
 import com.android.internal.gmscompat.GmsCompatApp
-import com.android.internal.gmscompat.WalletCompat
 import com.android.internal.gmscompat.GmsInfo.PACKAGE_GMS_CORE
 import java.util.concurrent.Executors
 
@@ -135,28 +134,6 @@ class MainFragment : SettingsBasePreferenceFragment() {
             title = getString(R.string.potential_issues)
             isVisible = false
             screen.addPreference(this)
-        }
-        if (checkPackageId(PackageId.GMS_CORE_NAME, PackageId.GMS_CORE)) {
-            screen.addPreference(SwitchPreferenceCompat(ctx).apply {
-                setTitle(R.string.wallet_attestation_serial_title)
-                setSummary(R.string.wallet_attestation_serial_summary)
-                isSingleLineTitle = false
-                isChecked = WalletCompatSettings.isEnabled()
-                val supportedVersion = ctx.packageManager.getApplicationInfo(
-                    PackageId.GMS_CORE_NAME, 0).longVersionCode == WalletCompat.SUPPORTED_GMS_VERSION
-                if (!supportedVersion) {
-                    // Always let users turn off an opt-in after an update or permission revocation.
-                    isEnabled = isChecked
-                    setSummary(R.string.wallet_attestation_serial_unsupported)
-                }
-                setOnPreferenceChangeListener { _, value ->
-                    val saved = WalletCompatSettings.setEnabled(value as Boolean)
-                    if (saved && !supportedVersion) isEnabled = false
-                    if (!saved) Toast.makeText(ctx, R.string.wallet_attestation_permission_failed,
-                        Toast.LENGTH_LONG).show()
-                    saved
-                }
-            })
         }
         preferenceScreen = screen
     }

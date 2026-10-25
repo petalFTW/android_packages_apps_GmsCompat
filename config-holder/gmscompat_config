@@ -1,47 +1,29 @@
 [[flags]]
 
 [com.google.android.apps.wearables.maestro.companion#com.google.android.apps.wearables.maestro.companion]
-# Force Maestro's standalone UI path. On Pixel devices, Maestro normally
-# redirects Pixel Buds controls to Android's Bluetooth device details page when this
-# flag is false. That Settings path depends on Play services having completed the
-# Fast Pair flow, stored Fast Pair account-key state for the Buds, and written
-# Bluetooth metadata key 25 (METADATA_FAST_PAIR_CUSTOMIZED_FIELDS) so Settings can
-# bind GmsCore's DeviceSettings config provider and then the returned per-setting
-# provider endpoints. Bluetooth metadata + pairing management is currently privileged
+# keep Buds controls in Maestro; the Settings route needs privileged Fast Pair metadata
 MaestroApp__standalone_mode true
 
 [com.google.android.gms]
-# disable AnomalyConfigIntentOperation, which crashes due to unavailable StatsManager
-# (GmsCore 26.x renamed this flag from the numeric id 45681197 to "CORE_ANOMALY_CONFIG_RECEIVER")
+# kill the StatsManager crash path; 26.x uses the named flag too
 45681197 false
 CORE_ANOMALY_CONFIG_RECEIVER false
-# DeviceDoctor kills GmsCore process from an UncaughtExceptionHandler, which hides the crash from
-# the GmsCompat crash reporting system
+# DeviceDoctor hides crashes by killing the process, cheers for that
 DeviceDoctor__devicedoctor_enabled false
 
 [com.google.android.gms.enpromo]
-# enpromo is a GmsCore module that shows a notification that prompts the user to enable
-# Exposure Notifications (en). It needs location access to determine which location-specific app
-# needs to be installed for Exposure Notifications to function.
-# Location permission can't be revoked for privileged GmsCore, it being revoked leads to a crash
-# (location access being disabled is handled correctly, but spoofing it would break other functionality)
+# no location permission means no region-specific exposure promo
 PromoFeature__enabled perms-none-of android.permission.ACCESS_COARSE_LOCATION false
 
 [com.google.android.gms.fido]
-# Note that the rest of dynamic FIDO flags are forced to their default values by force_default_flags
-# below for increased stability
+# the other FIDO flags stay at defaults below, less random breakage
 Passkeys__client_data_hash_override_for_security_keys true
 
 [com.google.android.gms.personalsafety]
-# requires privileged LOCK_DEVICE permission, though other Phenotype flags can also make it fallback
-# to DevicePolicyManager lockNow
+# LOCK_DEVICE is privileged; don't let the alternate lockNow path sneak in
 AutoLockSettings__enable_theft_protection_default_on_notification false
 
-# petalOS: disable battery-draining Personal Safety background features. These run in
-# sandboxed GmsCore with no user-facing toggle, and show up in batterystats as constant
-# Bluetooth scanning (unknown-tracker "DULT" auto-scan) and a 100 Hz accelerometer stream
-# (snatch-detection "SND"). Car crash detection (Canopy/CarCrash) is kept at default in
-# force_default_flags below.
+# DULT scanning and the 100 Hz SND sensor chew battery; car-crash defaults stay below
 PersonalsafetySnd__enable_snd false
 PersonalsafetyFeature__enable_dult_for_auto_detection false
 PersonalsafetyFeature__enable_dult_for_ble_identification false
@@ -53,30 +35,20 @@ PersonalsafetyFeature__enable_scan_listener_manager false
 add_external_experiment_ids false
 
 [com.google.android.gms.advancedprotection#com.google.android.gms]
-# disable Advanced Protection, as privileged permissions are needed to enable advanced protection
-# via the AdvancedProtectionService. Many of the device protection features are already implemented
-# in GrapheneOS.
+# AdvancedProtectionService needs privileges this sandbox doesn't have
 45673629 false
 AdvancedProtection__enable_titanium_enrollment_notification false
 
 [com.google.android.gms.nearby]
 # disable WearableDataListenerService, it needs privileged permissions
 FastPairFeature__enable_wearable_service false
-# use PackageManager#getNameForUid() instead of PackageManager#getPackagesForUid(), the latter needs
-# a shim that is currently absent
+# use getNameForUid; the getPackagesForUid shim isn't here
 FastPairConfig__sass_get_package_name_from_playback_configuration false
 
 [com.google.android.gms.cast]
-# Prevent crashes in GmsCore caused by calling ConnectivityManager#registerNetworkCallback too many
-# times when it has no INTERNET permission (there's a OS-enforced limit on the number of these callbacks).
-# Likely a regression, newer and older versions of GmsCore don't have this issue.
-# This flag makes it use a deprecated BroadcastReceiver instead.
+# use the old receiver so no-INTERNET builds don't spam network callbacks and crash
 MdnsConfigs__use_connectivity_manager_for_wifi_monitor_if_possible false
-# CAST_CONNECTION_NOTIFY dialogs are incompatible with gmscompat code that shows a notification
-# prompt on background activity starts, because startActivity() calls are used for both showing and
-# auto-dismissing them. These dialogs are disabled by default, but were enabled with a PhenotypeFlag
-# update.
-# See https://discuss.grapheneos.org/d/1263-notification-says-google-play-services-needs-to-show-a-screen
+# cast dialogs use startActivity to dismiss too, which wrecks our background prompt
 ReceiverControlChannelFeatures__enable_user_accept_dialogs false
 
 [com.google.android.gms.people]
@@ -335,6 +307,10 @@ setPoweredOffFindingEphemeralIds void
 
 [1008]
 245099999 84459999
+
+[1009]
+# user's working bundle, don't wave newer builds through blindly
+263234035 84452430
 
 [[stubs_12.1]]
 

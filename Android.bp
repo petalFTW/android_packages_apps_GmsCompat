@@ -19,6 +19,9 @@ android_app {
     resource_dirs: [
         "res",
     ],
+    asset_dirs: [
+        "assets",
+    ],
     static_libs: [
         // needed by androidx.navigation
         "kotlinx_serialization_core",

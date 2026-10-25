@@ -101,7 +101,6 @@ public class GmsCompatConfigParser {
             }
         }
         res.version = version;
-        res.walletAttestationSerialAccess = WalletCompatSettings.reconcilePermission();
         return res;
     }
 
